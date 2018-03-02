@@ -1,13 +1,12 @@
-ABANDONED
-=========
+SEMI-UN-ABANDONED
+=================
 
-Check this PR to get more info: https://github.com/tzulberti/django-datefilterspec/pull/17
+This fork is maintained for an entirely-selfish purpose of making this
+functionality usable for WSP Digital projects (running Python 3 on
+Django 1.11).
 
+However, it'll probably work well enough if you want to try it.
 
-
-.. image:: https://travis-ci.org/tzulberti/django-datefilterspec.svg?branch=master
-    :alt: Build status
-    :target: https://travis-ci.org/tzulberti/django-datefilterspec
 
 django-daterange-filter
 =======================
