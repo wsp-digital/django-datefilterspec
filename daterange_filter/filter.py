@@ -116,7 +116,7 @@ class DateTimeRangeForm(DateRangeFilterBaseForm):
         field_name = kwargs.pop('field_name')
         super(DateTimeRangeForm, self).__init__(*args, **kwargs)
 
-        self.fields['%s%s__gte' % (FILTER_PREFIX, field_name)] = forms.DateTimeField(
+        self.fields['%s%s__gte' % (FILTER_PREFIX, field_name)] = forms.SplitDateTimeField(
             label='',
             widget=DateRangeFilterAdminSplitDateTime(
                 attrs={'placeholder': _('From date')}
@@ -125,7 +125,7 @@ class DateTimeRangeForm(DateRangeFilterBaseForm):
             required=False
         )
 
-        self.fields['%s%s__lte' % (FILTER_PREFIX, field_name)] = forms.DateTimeField(
+        self.fields['%s%s__lte' % (FILTER_PREFIX, field_name)] = forms.SplitDateTimeField(
             label='',
             widget=DateRangeFilterAdminSplitDateTime(
                 attrs={'placeholder': _('To date')},
