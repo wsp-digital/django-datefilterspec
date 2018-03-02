@@ -156,7 +156,6 @@ class DateRangeFilter(admin.filters.FieldListFilter):
         Pop the original parameters, and return the date filter & other filter
         parameters.
         """
-        
         hidden_params = copy.deepcopy(cl.params)
         hidden_params.pop(self.lookup_kwarg_since, None)
         hidden_params.pop(self.lookup_kwarg_upto, None)
