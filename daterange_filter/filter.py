@@ -10,10 +10,12 @@ import datetime
 import django
 from django import forms
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext as _
 from django.contrib.admin.templatetags.admin_static import static
 from django.conf import settings
+from django.forms.utils import from_current_timezone
 
 use_suit = 'DATE_RANGE_FILTER_USE_WIDGET_SUIT'
 
@@ -110,13 +112,40 @@ class DateRangeForm(DateRangeFilterBaseForm):
             return super(DateRangeForm, self).media
 
 
+class CustomSplitDateTimeField(forms.SplitDateTimeField):
+    """
+    Permit an empty time sub-field (and interpret as zero, ie.  midnight).
+
+    The default `SplitDateTimeField` will complain if you leave the
+    time sub-field blank (unless the date sub-field is *also* blank).
+    """
+
+    def compress(self, data_list):
+        if data_list:
+            # Raise a validation error if date is empty.
+            #
+            # This is only possible if the *time* sub-field is populated
+            # but the date sub-field isn't.
+            if data_list[0] in self.empty_values:
+                raise ValidationError(self.error_messages['invalid_date'], code='invalid_date')
+            if data_list[1] in self.empty_values:
+                # It's perfectly okay for the time sub-field to be left
+                # empty, as long as the date sub-field is populated!
+                # Just interpret it as midnight.
+                result = datetime.datetime.combine(data_list[0], datetime.time())
+            else:
+                result = datetime.datetime.combine(*data_list)
+            return from_current_timezone(result)
+        return None
+
+
 class DateTimeRangeForm(DateRangeFilterBaseForm):
 
     def __init__(self, *args, **kwargs):
         field_name = kwargs.pop('field_name')
         super(DateTimeRangeForm, self).__init__(*args, **kwargs)
 
-        self.fields['%s%s__gte' % (FILTER_PREFIX, field_name)] = forms.SplitDateTimeField(
+        self.fields['%s%s__gte' % (FILTER_PREFIX, field_name)] = CustomSplitDateTimeField(
             label='',
             widget=DateRangeFilterAdminSplitDateTime(
                 attrs={'placeholder': _('From date')}
@@ -125,7 +154,7 @@ class DateTimeRangeForm(DateRangeFilterBaseForm):
             required=False
         )
 
-        self.fields['%s%s__lte' % (FILTER_PREFIX, field_name)] = forms.SplitDateTimeField(
+        self.fields['%s%s__lte' % (FILTER_PREFIX, field_name)] = CustomSplitDateTimeField(
             label='',
             widget=DateRangeFilterAdminSplitDateTime(
                 attrs={'placeholder': _('To date')},
