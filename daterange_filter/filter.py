@@ -120,6 +120,10 @@ class CustomSplitDateTimeField(forms.SplitDateTimeField):
     time sub-field blank (unless the date sub-field is *also* blank).
     """
 
+    def __init__(self, *args, default_time=None, **kwargs):
+        self.default_time = default_time or datetime.time(0, 0, 0)
+        super().__init__(self, *args, **kwargs)
+
     def compress(self, data_list):
         if data_list:
             # Raise a validation error if date is empty.
@@ -131,8 +135,8 @@ class CustomSplitDateTimeField(forms.SplitDateTimeField):
             if data_list[1] in self.empty_values:
                 # It's perfectly okay for the time sub-field to be left
                 # empty, as long as the date sub-field is populated!
-                # Just interpret it as midnight.
-                result = datetime.datetime.combine(data_list[0], datetime.time())
+                # Just interpret it as the given `default_time`.
+                result = datetime.datetime.combine(data_list[0], self.default_time)
             else:
                 result = datetime.datetime.combine(*data_list)
             return from_current_timezone(result)
@@ -141,7 +145,7 @@ class CustomSplitDateTimeField(forms.SplitDateTimeField):
 
 class DateTimeRangeForm(DateRangeFilterBaseForm):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, default_start_time=None, default_end_time=None, **kwargs):
         field_name = kwargs.pop('field_name')
         super(DateTimeRangeForm, self).__init__(*args, **kwargs)
 
@@ -151,7 +155,8 @@ class DateTimeRangeForm(DateRangeFilterBaseForm):
                 attrs={'placeholder': _('From date')}
             ),
             localize=True,
-            required=False
+            required=False,
+            default_time=default_start_time,
         )
 
         self.fields['%s%s__lte' % (FILTER_PREFIX, field_name)] = CustomSplitDateTimeField(
@@ -160,7 +165,8 @@ class DateTimeRangeForm(DateRangeFilterBaseForm):
                 attrs={'placeholder': _('To date')},
             ),
             localize=True,
-            required=False
+            required=False,
+            default_time=default_end_time,
         )
 
     # Django 1.4 can't handle media inheritance well. We have to do it manually.
