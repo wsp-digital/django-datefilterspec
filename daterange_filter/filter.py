@@ -26,11 +26,23 @@ else:
 
 if DATE_RANGE_FILTER_USE_WIDGET_SUIT:
     try:
-        from suit.widgets import SuitDateWidget as AdminDateWidget, SuitSplitDateTimeWidget as AdminSplitDateTime
+        from suit.widgets import (
+            SuitDateWidget as AdminDateWidget,
+            SuitTimeWidget as AdminTimeWidget,
+            SuitSplitDateTimeWidget as AdminSplitDateTime
+        )
     except ImportError:
-        from django.contrib.admin.widgets import AdminDateWidget, AdminSplitDateTime
+        from django.contrib.admin.widgets import (
+            AdminDateWidget,
+            AdminTimeWidget,
+            AdminSplitDateTime
+        )
 else:
-    from django.contrib.admin.widgets import AdminDateWidget, AdminSplitDateTime
+    from django.contrib.admin.widgets import (
+        AdminDateWidget,
+        AdminTimeWidget,
+        AdminSplitDateTime
+    )
 
 try:
     from django.utils.html import format_html
@@ -53,6 +65,19 @@ def clean_input_prefix(input_):
 
 
 class DateRangeFilterAdminSplitDateTime(AdminSplitDateTime):
+    def __init__(self, *args, date_attrs=None, time_attrs=None, **kwargs):
+        if date_attrs is None:
+            date_attrs = {}
+        if time_attrs is None:
+            time_attrs = {}
+        widgets = [
+            AdminDateWidget(attrs=date_attrs),
+            AdminTimeWidget(attrs=time_attrs),
+        ]
+        # NOTE: We're deliberately skipping `AdminSplitDateTime.__init__`
+        # here, because it'll override our `widgets`.
+        forms.MultiWidget.__init__(self, widgets, **kwargs)
+
     def format_output(self, rendered_widgets):
         return format_html('<p>{0} {1}<br />{2} {3}</p>',
                            '', rendered_widgets[0],
@@ -145,15 +170,23 @@ class CustomSplitDateTimeField(forms.SplitDateTimeField):
 
 class DateTimeRangeForm(DateRangeFilterBaseForm):
 
-    def __init__(self, *args, default_start_time=None, default_end_time=None, **kwargs):
+    def __init__(self, *args, default_start_time=None, default_end_time=None,
+            from_widget_kwargs=None, to_widget_kwargs=None, **kwargs):
         field_name = kwargs.pop('field_name')
         super(DateTimeRangeForm, self).__init__(*args, **kwargs)
 
+        if from_widget_kwargs is None:
+            from_widget_kwargs = dict(
+                date_attrs={'placeholder': _('From date')},
+                time_attrs={'placeholder': _('From time')})
+        if to_widget_kwargs is None:
+            to_widget_kwargs = dict(
+                date_attrs={'placeholder': _('To date')},
+                time_attrs={'placeholder': _('To time')})
+
         self.fields['%s%s__gte' % (FILTER_PREFIX, field_name)] = CustomSplitDateTimeField(
             label='',
-            widget=DateRangeFilterAdminSplitDateTime(
-                attrs={'placeholder': _('From date')}
-            ),
+            widget=DateRangeFilterAdminSplitDateTime(**from_widget_kwargs),
             localize=True,
             required=False,
             default_time=default_start_time,
@@ -161,9 +194,7 @@ class DateTimeRangeForm(DateRangeFilterBaseForm):
 
         self.fields['%s%s__lte' % (FILTER_PREFIX, field_name)] = CustomSplitDateTimeField(
             label='',
-            widget=DateRangeFilterAdminSplitDateTime(
-                attrs={'placeholder': _('To date')},
-            ),
+            widget=DateRangeFilterAdminSplitDateTime(**to_widget_kwargs),
             localize=True,
             required=False,
             default_time=default_end_time,
