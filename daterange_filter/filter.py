@@ -122,7 +122,7 @@ class CustomSplitDateTimeField(forms.SplitDateTimeField):
 
     def __init__(self, *args, default_time=None, **kwargs):
         self.default_time = default_time or datetime.time(0, 0, 0)
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def compress(self, data_list):
         if data_list:
