@@ -13,7 +13,7 @@ from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext as _
-from django.contrib.admin.templatetags.admin_static import static
+from django.templatetags.static import static
 from django.conf import settings
 from django.forms.utils import from_current_timezone
 
