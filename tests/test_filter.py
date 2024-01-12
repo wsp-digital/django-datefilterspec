@@ -4,7 +4,7 @@ from django.utils import timezone
 from mock import Mock, call, ANY, patch
 from django import forms
 from django.contrib.admin.widgets import AdminDateWidget
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from daterange_filter.filter import DateRangeFilterBaseForm, DateRangeForm, DateTimeRangeForm, \
     DateRangeFilterAdminSplitDateTime, DateRangeFilter, DateTimeRangeFilter, clean_input_prefix
 from tests import BaseTest
