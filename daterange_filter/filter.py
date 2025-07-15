@@ -10,7 +10,7 @@ import datetime
 import django
 from django import forms
 from django.contrib import admin
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models
 from django.utils.translation import gettext as _
 from django.templatetags.static import static
@@ -251,6 +251,16 @@ class DateRangeFilter(admin.filters.FieldListFilter):
         else:
             return queryset
 
+    def get_facet_counts(self, pk_attname, filtered_qs):
+        """
+        Implements the abstract method from `FacetsMixin` in Django 5.
+        Not implemented as we don't need to show facets for this filter.
+        """
+        raise ImproperlyConfigured(
+            "DateRangeFilter has not been configured to support facet counts. "
+            "Please override the `get_facet_counts` method to implement this functionality."
+        )        
+
 
 class DateTimeRangeFilter(admin.filters.FieldListFilter):
     template = 'daterange_filter/filter.html'
@@ -292,6 +302,16 @@ class DateTimeRangeFilter(admin.filters.FieldListFilter):
             return queryset.filter(**filter_params)
         else:
             return queryset
+
+    def get_facet_counts(self, pk_attname, filtered_qs):
+        """
+        Implements the abstract method from `FacetsMixin` in Django 5.
+        Not implemented as we don't need to show facets for this filter.
+        """
+        raise ImproperlyConfigured(
+            "DateTimeRangeFilter has not been configured to support facet counts. "
+            "Please override the `get_facet_counts` method to implement this functionality."
+        )
 
 
 # register the filters
