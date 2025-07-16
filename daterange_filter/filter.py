@@ -213,9 +213,18 @@ class DateRangeFilter(admin.filters.FieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):
         self.lookup_kwarg_since = '%s%s__gte' % (FILTER_PREFIX, field_path)
         self.lookup_kwarg_upto = '%s%s__lte' % (FILTER_PREFIX, field_path)
+
         super(DateRangeFilter, self).__init__(
             field, request, params, model, model_admin, field_path)
         self.form = self.get_form(request)
+
+        # Query parameters are returned as lists in Django 5 and need to
+        # be unpacked to be used with this filter.
+        # Only one value is expected for each parameter as the user can
+        # only enter one date for each field.
+        for param, param_item_list in self.used_parameters.items():
+            if isinstance(param_item_list, list) and len(param_item_list) == 1:
+                self.used_parameters[param] = param_item_list[0]
 
     def choices(self, cl):
         """
@@ -275,6 +284,14 @@ class DateTimeRangeFilter(admin.filters.FieldListFilter):
             field, request, params, model, model_admin, field_path)
         self.form = self.get_form(request)
 
+        # Query parameters are returned as lists in Django 5.0 and need to
+        # be unpacked to be used with this filter.
+        # Only one value is expected for each parameter as the user can
+        # only enter one date and time for each pair of fields.
+        for param, param_item_list in self.used_parameters.items():
+            if isinstance(param_item_list, list) and len(param_item_list) == 1:
+                self.used_parameters[param] = param_item_list[0]
+
     def choices(self, cl):
         """
         Pop the original parameters, and return the date filter & other filter
@@ -305,7 +322,7 @@ class DateTimeRangeFilter(admin.filters.FieldListFilter):
 
     def get_facet_counts(self, pk_attname, filtered_qs):
         """
-        Implements the abstract method from `FacetsMixin` in Django 5.
+        Implements the abstract method from `FacetsMixin` in Django 5.0.
         Not implemented as we don't need to show facets for this filter.
         """
         raise ImproperlyConfigured(
