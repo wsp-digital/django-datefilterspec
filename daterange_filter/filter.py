@@ -262,8 +262,11 @@ class DateRangeFilter(admin.filters.FieldListFilter):
 
     def get_facet_counts(self, pk_attname, filtered_qs):
         """
-        Implements the abstract method from `FacetsMixin` in Django 5.
-        Not implemented as we don't need to show facets for this filter.
+        Implements the abstract method from `FacetsMixin` in Django 5.0.
+        We don't need a proper implementation of this method given
+        facets are not shown or supported by ths filter. As such returning
+        an `ImproperlyConfigured` exception is sufficient.
+
         """
         raise ImproperlyConfigured(
             "DateRangeFilter has not been configured to support facet counts. "
@@ -323,7 +326,10 @@ class DateTimeRangeFilter(admin.filters.FieldListFilter):
     def get_facet_counts(self, pk_attname, filtered_qs):
         """
         Implements the abstract method from `FacetsMixin` in Django 5.0.
-        Not implemented as we don't need to show facets for this filter.
+        We don't need a proper implementation of this method given
+        facets are not shown or supported by ths filter. As such returning
+        an `ImproperlyConfigured` exception is sufficient.
+
         """
         raise ImproperlyConfigured(
             "DateTimeRangeFilter has not been configured to support facet counts. "
