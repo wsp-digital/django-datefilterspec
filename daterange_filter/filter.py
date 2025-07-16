@@ -218,13 +218,23 @@ class DateRangeFilter(admin.filters.FieldListFilter):
             field, request, params, model, model_admin, field_path)
         self.form = self.get_form(request)
 
-        # Query parameters are returned as lists in Django 5 and need to
+        # Query parameters are returned as lists in Django 5.0 and need to
         # be unpacked to be used with this filter.
         # Only one value is expected for each parameter as the user can
         # only enter one date for each field.
-        for param, param_item_list in self.used_parameters.items():
-            if isinstance(param_item_list, list) and len(param_item_list) == 1:
-                self.used_parameters[param] = param_item_list[0]
+        used_parameters_items = list(self.used_parameters.items())
+
+        for param_name, param_value in used_parameters_items:
+            if isinstance(param_value, list):
+                if len(param_value) == 1:
+                    self.used_parameters[param_name] = param_value[0]
+                
+                else:
+                    raise ValueError(
+                        "DateRangeFilter expects only one value for each "
+                        "query parameter, but got multiple values for "
+                        f"'{param_name}': {param_value}"
+                    )
 
     def choices(self, cl):
         """
@@ -291,9 +301,19 @@ class DateTimeRangeFilter(admin.filters.FieldListFilter):
         # be unpacked to be used with this filter.
         # Only one value is expected for each parameter as the user can
         # only enter one date and time for each pair of fields.
-        for param, param_item_list in self.used_parameters.items():
-            if isinstance(param_item_list, list) and len(param_item_list) == 1:
-                self.used_parameters[param] = param_item_list[0]
+        used_parameters_items = list(self.used_parameters.items())
+
+        for param_name, param_value in used_parameters_items:
+            if isinstance(param_value, list):
+                if len(param_value) == 1:
+                    self.used_parameters[param_name] = param_value[0]
+                
+                else:
+                    raise ValueError(
+                        "DateTimeRangeFilter expects only one value for each "
+                        "query parameter, but got multiple values for "
+                        f"'{param_name}': {param_value}"
+                    )
 
     def choices(self, cl):
         """
