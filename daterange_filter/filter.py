@@ -213,9 +213,28 @@ class DateRangeFilter(admin.filters.FieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):
         self.lookup_kwarg_since = '%s%s__gte' % (FILTER_PREFIX, field_path)
         self.lookup_kwarg_upto = '%s%s__lte' % (FILTER_PREFIX, field_path)
+
         super(DateRangeFilter, self).__init__(
             field, request, params, model, model_admin, field_path)
         self.form = self.get_form(request)
+
+        # Query parameters are returned as lists in Django 5.0 and need to
+        # be unpacked to be used with this filter.
+        # Only one value is expected for each parameter as the user can
+        # only enter one date for each field.
+        used_parameters_items = list(self.used_parameters.items())
+
+        for param_name, param_value in used_parameters_items:
+            if isinstance(param_value, list):
+                if len(param_value) == 1:
+                    self.used_parameters[param_name] = param_value[0]
+                
+                else:
+                    raise ValueError(
+                        "DateRangeFilter expects only one value for each "
+                        "query parameter, but got multiple values for "
+                        f"'{param_name}': {param_value}"
+                    )
 
     def choices(self, cl):
         """
@@ -253,8 +272,11 @@ class DateRangeFilter(admin.filters.FieldListFilter):
 
     def get_facet_counts(self, pk_attname, filtered_qs):
         """
-        Implements the abstract method from `FacetsMixin` in Django 5.
-        Not implemented as we don't need to show facets for this filter.
+        Implements the abstract method from `FacetsMixin` in Django 5.0.
+        We don't need a proper implementation of this method given
+        facets are not shown or supported by ths filter. As such returning
+        an `ImproperlyConfigured` exception is sufficient.
+
         """
         raise ImproperlyConfigured(
             "DateRangeFilter has not been configured to support facet counts. "
@@ -274,6 +296,24 @@ class DateTimeRangeFilter(admin.filters.FieldListFilter):
         super(DateTimeRangeFilter, self).__init__(
             field, request, params, model, model_admin, field_path)
         self.form = self.get_form(request)
+
+        # Query parameters are returned as lists in Django 5.0 and need to
+        # be unpacked to be used with this filter.
+        # Only one value is expected for each parameter as the user can
+        # only enter one date and time for each pair of fields.
+        used_parameters_items = list(self.used_parameters.items())
+
+        for param_name, param_value in used_parameters_items:
+            if isinstance(param_value, list):
+                if len(param_value) == 1:
+                    self.used_parameters[param_name] = param_value[0]
+                
+                else:
+                    raise ValueError(
+                        "DateTimeRangeFilter expects only one value for each "
+                        "query parameter, but got multiple values for "
+                        f"'{param_name}': {param_value}"
+                    )
 
     def choices(self, cl):
         """
@@ -305,8 +345,11 @@ class DateTimeRangeFilter(admin.filters.FieldListFilter):
 
     def get_facet_counts(self, pk_attname, filtered_qs):
         """
-        Implements the abstract method from `FacetsMixin` in Django 5.
-        Not implemented as we don't need to show facets for this filter.
+        Implements the abstract method from `FacetsMixin` in Django 5.0.
+        We don't need a proper implementation of this method given
+        facets are not shown or supported by ths filter. As such returning
+        an `ImproperlyConfigured` exception is sufficient.
+
         """
         raise ImproperlyConfigured(
             "DateTimeRangeFilter has not been configured to support facet counts. "
